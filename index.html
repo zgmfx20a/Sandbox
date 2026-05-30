@@ -688,6 +688,96 @@
   .drawers-container { gap: 12px; }
   .cards-container { gap: 6px; }
 }
+
+/* ===== Science Liar Game styles ===== */
+#science-phase {
+  position: fixed; inset: 0; z-index: 4; display: none;
+  font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+  background: #0a0a1a; color: #e0e0e0;
+  justify-content: center; align-items: center; padding: 20px;
+  user-select: none;
+}
+#science-phase.active { display: flex; }
+#science-phase .sci-container {
+  max-width: 700px; width: 100%;
+  background: #12122a; border-radius: 20px; padding: 40px 30px;
+  box-shadow: 0 0 40px rgba(80,80,255,0.15); border: 1px solid #2a2a4a;
+}
+#science-phase .sci-title {
+  text-align: center; font-size: 1.8em; color: #7eb8ff; margin-bottom: 8px;
+}
+#science-phase .sci-subtitle {
+  text-align: center; font-size: 0.9em; color: #667; margin-bottom: 30px;
+}
+#science-phase .sci-scoreboard {
+  display: flex; justify-content: space-around; margin-bottom: 25px; gap: 15px;
+}
+#science-phase .sci-score-item {
+  text-align: center; background: #1a1a35; border-radius: 12px; padding: 12px 24px; flex: 1;
+}
+#science-phase .sci-score-label {
+  font-size: 0.75em; color: #778; text-transform: uppercase; letter-spacing: 1px;
+}
+#science-phase .sci-score-value {
+  font-size: 1.8em; font-weight: bold; color: #7eb8ff; margin-top: 4px;
+}
+#science-phase .sci-theme-badge {
+  display: inline-block; background: #252550; color: #aab;
+  padding: 4px 14px; border-radius: 20px; font-size: 0.8em; margin-bottom: 20px;
+}
+#science-phase .sci-principles {
+  list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;
+}
+#science-phase .sci-principle-item {
+  background: #1a1a35; border: 2px solid #2a2a4a; border-radius: 12px;
+  padding: 16px 20px; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: flex-start; gap: 14px;
+}
+#science-phase .sci-principle-item:hover:not(.locked) {
+  border-color: #446; background: #1f1f3f; transform: translateX(4px);
+}
+#science-phase .sci-principle-item.locked { cursor: default; pointer-events: none; }
+#science-phase .sci-principle-item.correct {
+  border-color: #2ecc71; background: #0f2f1f; animation: sci-flash-green 0.5s;
+}
+#science-phase .sci-principle-item.wrong {
+  border-color: #e74c3c; background: #2f0f0f; animation: sci-shake 0.4s;
+}
+#science-phase .sci-principle-item.reveal-lie {
+  border-color: #f39c12; background: #2f2a0f; animation: sci-flash-gold 0.5s;
+}
+#science-phase .sci-num { color: #556; font-weight: bold; font-size: 0.9em; min-width: 24px; text-align: center; padding-top: 2px; }
+#science-phase .sci-text { flex: 1; line-height: 1.6; font-size: 0.95em; }
+#science-phase .sci-result-area { text-align: center; margin-bottom: 20px; min-height: 30px; }
+#science-phase .sci-result-msg { font-size: 1.1em; font-weight: bold; }
+#science-phase .sci-result-msg.correct-msg { color: #2ecc71; }
+#science-phase .sci-result-msg.wrong-msg { color: #e74c3c; }
+#science-phase .sci-next-btn {
+  display: block; width: 100%; max-width: 240px; margin: 0 auto;
+  padding: 14px; font-size: 1em; font-weight: bold; border: none; border-radius: 30px;
+  cursor: pointer; background: linear-gradient(135deg, #3a3aff, #6b6bff);
+  color: #fff; transition: opacity 0.2s, transform 0.2s; letter-spacing: 1px;
+}
+#science-phase .sci-next-btn:hover { opacity: 0.85; transform: scale(1.03); }
+#science-phase .sci-next-btn:active { transform: scale(0.97); }
+#science-phase .sci-next-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+#science-phase .sci-game-over { text-align: center; padding: 20px 0; }
+#science-phase .sci-game-over h2 { font-size: 1.8em; color: #7eb8ff; margin-bottom: 10px; }
+#science-phase .sci-final-score { font-size: 3em; font-weight: bold; color: #fff; margin: 15px 0; }
+#science-phase .sci-game-over p { color: #889; margin-bottom: 20px; }
+#science-phase .sci-game-over .restart-btn { background: linear-gradient(135deg, #f5a623, #f7e05e); }
+@keyframes sci-shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  50% { transform: translateX(8px); }
+  75% { transform: translateX(-4px); }
+}
+@keyframes sci-flash-green {
+  0% { background: #1a1a35; } 40% { background: #0f3f2f; } 100% { background: #0f2f1f; }
+}
+@keyframes sci-flash-gold {
+  0% { background: #1a1a35; } 40% { background: #3f3a0f; } 100% { background: #2f2a0f; }
+}
 </style>
 </head>
 <body>
@@ -834,9 +924,33 @@
         <span style="color:#ff7eb3;">見た目のウソに惑わされず、じっくり観察することが大切！</span>
       </div>
       <button class="restart-btn" onclick="app.reset()">もう一度遊ぶ</button>
+      <p style="color:#88aaff;font-size:clamp(13px,2vw,16px);margin-top:20px;animation:fadePulse 2s ease infinite;">簡単すぎたかな？<br>もっと難しい問題に挑戦してみよう</p>
     </div>
   </div>
   <div class="confetti-container" id="confetti-container"></div>
+</div>
+
+<div id="science-phase">
+  <div class="sci-container">
+    <h1 class="sci-title">ウソ科学ゲーム</h1>
+    <p class="sci-subtitle">4つの科学知識のうち、<strong>1つだけ嘘</strong>が混ざっています<br>それを見抜いてください！</p>
+    <div class="sci-scoreboard">
+      <div class="sci-score-item">
+        <div class="sci-score-label">ラウンド</div>
+        <div class="sci-score-value" id="sciRoundNum">1 / 5</div>
+      </div>
+      <div class="sci-score-item">
+        <div class="sci-score-label">正解</div>
+        <div class="sci-score-value" id="sciScore">0</div>
+      </div>
+    </div>
+    <div class="sci-theme-badge" id="sciThemeBadge">テーマ：物理学</div>
+    <ul class="sci-principles" id="sciPrincipleList"></ul>
+    <div class="sci-result-area">
+      <span class="sci-result-msg" id="sciResultMsg"></span>
+    </div>
+    <button class="sci-next-btn" id="sciNextBtn">次の問題へ</button>
+  </div>
 </div>
 
 <script>
@@ -2038,6 +2152,11 @@ const app = {
 
   showEnding() {
     this.spawnConfetti();
+    setTimeout(() => {
+      document.getElementById('game-phase').style.display = 'none';
+      document.getElementById('science-phase').classList.add('active');
+      sciGame.start();
+    }, 3000);
   },
 
   spawnConfetti() {
@@ -2134,6 +2253,199 @@ window.addEventListener('resize', () => {
 });
 
 app.init();
+
+// ===========================
+// Phase 4: Science Liar Game
+// ===========================
+const sciGame = {
+  totalRounds: 5,
+  currentQuestion: 0,
+  score: 0,
+  locked: false,
+  questions: [],
+  allQuestions: [
+    {
+      theme: "物理学",
+      truths: [
+        "絶対零度（-273.15℃）では、物質を構成する原子の熱運動が理論上停止する。",
+        "光は真空中を秒速約30万km（約299,792,458 m/s）で進み、これは宇宙の速度限界である。",
+        "ニュートンの運動の第三法則は「作用には常に反作用が伴う」というものである。"
+      ],
+      lie: "質量を持つ物体は光速に達することができ、実際に素粒子加速器で陽子を光速まで加速した記録がある。"
+    },
+    {
+      theme: "生物学",
+      truths: [
+        "ヒトのDNAは約30億塩基対からなり、細胞核内の染色体に折りたたまれて収納されている。",
+        "ミトコンドリアは独自のDNAを持ち、母系遺伝することが知られている。",
+        "酵素は化学反応の活性化エネルギーを下げる触媒として働き、反応後に自身は変化しない。"
+      ],
+      lie: "ヒトの胃には胃酸があるが、サメの胃には胃酸がなく、代わりに飲み込んだ石で食物をすり潰す。"
+    },
+    {
+      theme: "化学",
+      truths: [
+        "水（H₂O）は水素結合により、固体（氷）の方が液体よりも密度が低くなる異常な性質を持つ。",
+        "炭素にはダイヤモンド、グラファイト、フラーレンなど複数の同素体が存在する。",
+        "周期表は原子番号順に元素を並べたもので、ドミトリ・メンデレーエフが原型を考案した。"
+      ],
+      lie: "ヘリウムは最も軽い元素であり、水素よりも軽いため風船に詰めると最も浮力が大きくなる。"
+    },
+    {
+      theme: "地球科学",
+      truths: [
+        "地球の内核は固体の鉄とニッケルからなり、外核は液体である。この対流が地磁気を生み出している。",
+        "プレートテクトニクス理論により、地球の表面は十数枚のプレートに分かれ、年間数cm移動している。",
+        "大気中の二酸化炭素濃度が上昇すると温室効果が強まり、地球の平均気温が上昇する。"
+      ],
+      lie: "地球の自転速度は一定であり、1日の長さは過去40億年間まったく変化していない。"
+    },
+    {
+      theme: "天文学",
+      truths: [
+        "太陽の主成分は水素（約74%）とヘリウム（約24%）であり、核融合でエネルギーを生み出している。",
+        "ブラックホールは重力が強すぎて光すら脱出できない天体で、事象の地平面を持つ。",
+        "宇宙は約138億年前にビッグバンによって誕生したと考えられている。"
+      ],
+      lie: "月は地球の周りを公転しているが、実は地球より質量が大きく、潮汐力は月が地球に及ぼしている。"
+    },
+    {
+      theme: "医学・生理学",
+      truths: [
+        "ヒトの心臓は1日に約10万回拍動し、一生で約25億回以上拍動する。",
+        "血液中の赤血球はヘモグロビンを用いて酸素を全身に運搬する役割を持つ。",
+        "ワクチンは免疫系に病原体の記憶を作らせ、実際の感染時に素早く防御反応を起こせるようにする。"
+      ],
+      lie: "ヒトの脳は体重の約10%を占めるにもかかわらず、全身の酸素消費量の約80%を使用している。"
+    },
+    {
+      theme: "進化生物学",
+      truths: [
+        "自然選択説によれば、環境に有利な形質を持つ個体が生存・繁殖しやすく、その形質が集団に広がる。",
+        "現生人類（ホモ・サピエンス）は約30万年前にアフリカで出現したと考えられている。",
+        "すべての脊椎動物の胚発生において、咽頭弓（鰓裂）が一時期出現する共通点がある。"
+      ],
+      lie: "恐竜はすべて完全に絶滅しており、現生の鳥類は恐竜とは全く別の系統から進化した。"
+    },
+    {
+      theme: "量子力学",
+      truths: [
+        "光は波動と粒子の二重性を持ち、観測方法によってどちらの性質を示すかが変わる。",
+        "ハイゼンベルクの不確定性原理によれば、粒子の位置と運動量を同時に完全精度で測定することはできない。",
+        "量子もつれ状態にある二つの粒子は、遠く離れていても一方の測定が他方に瞬時に影響を及ぼす。"
+      ],
+      lie: "シュレーディンガーの猫は実在の実験であり、実際に猫を箱に入れて量子状態の観測を行った記録がある。"
+    }
+  ],
+
+  shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  },
+
+  start() {
+    this.currentQuestion = 0;
+    this.score = 0;
+    this.locked = false;
+    this.questions = this.shuffle(this.allQuestions).slice(0, this.totalRounds);
+    document.getElementById('sciScore').textContent = '0';
+    document.getElementById('sciNextBtn').style.display = '';
+    document.getElementById('sciNextBtn').disabled = true;
+    document.getElementById('sciResultMsg').textContent = '';
+    document.getElementById('sciResultMsg').className = 'sci-result-msg';
+    this.renderQuestion();
+  },
+
+  renderQuestion() {
+    this.locked = false;
+    document.getElementById('sciResultMsg').textContent = '';
+    document.getElementById('sciResultMsg').className = 'sci-result-msg';
+    document.getElementById('sciNextBtn').disabled = true;
+    document.getElementById('sciPrincipleList').innerHTML = '';
+
+    const q = this.questions[this.currentQuestion];
+    document.getElementById('sciThemeBadge').textContent = `テーマ：${q.theme}`;
+    document.getElementById('sciRoundNum').textContent = `${this.currentQuestion + 1} / ${this.totalRounds}`;
+
+    const items = this.shuffle([...q.truths, q.lie]);
+    const self = this;
+    items.forEach((text, i) => {
+      const li = document.createElement('li');
+      li.className = 'sci-principle-item';
+      li.innerHTML = `<span class="sci-num">${i + 1}</span><span class="sci-text">${text}</span>`;
+      li.addEventListener('click', () => self.handleSelect(li, text));
+      document.getElementById('sciPrincipleList').appendChild(li);
+    });
+  },
+
+  handleSelect(el, selectedText) {
+    if (this.locked) return;
+    this.locked = true;
+
+    const q = this.questions[this.currentQuestion];
+    const isLie = selectedText === q.lie;
+
+    const allItems = document.querySelectorAll('#sciPrincipleList .sci-principle-item');
+    allItems.forEach(item => item.classList.add('locked'));
+
+    if (isLie) {
+      el.classList.add('correct');
+      this.score++;
+      document.getElementById('sciScore').textContent = this.score;
+      document.getElementById('sciResultMsg').textContent = '正解！よく見抜きました！';
+      document.getElementById('sciResultMsg').className = 'sci-result-msg correct-msg';
+    } else {
+      el.classList.add('wrong');
+      document.getElementById('sciResultMsg').textContent = '残念！それは本当の科学知識です';
+      document.getElementById('sciResultMsg').className = 'sci-result-msg wrong-msg';
+      allItems.forEach(item => {
+        if (item.querySelector('.sci-text').textContent === q.lie) {
+          item.classList.add('reveal-lie');
+        }
+      });
+    }
+    document.getElementById('sciNextBtn').disabled = false;
+  },
+
+  nextQuestion() {
+    this.currentQuestion++;
+    if (this.currentQuestion >= this.totalRounds) {
+      this.showGameOver();
+      return;
+    }
+    this.renderQuestion();
+  },
+
+  showGameOver() {
+    const list = document.getElementById('sciPrincipleList');
+    list.innerHTML = '';
+    document.getElementById('sciResultMsg').textContent = '';
+    document.getElementById('sciNextBtn').style.display = 'none';
+    document.getElementById('sciThemeBadge').style.display = 'none';
+    document.getElementById('sciRoundNum').textContent = `${this.totalRounds} / ${this.totalRounds}`;
+
+    const div = document.createElement('div');
+    div.className = 'sci-game-over';
+    div.innerHTML = `
+      <h2>ゲーム終了！</h2>
+      <div class="sci-final-score">${this.score} / ${this.totalRounds}</div>
+      <p>正解率 ${Math.round(this.score / this.totalRounds * 100)}%</p>
+      <button class="restart-btn" id="sciRestartBtn">もう一度遊ぶ</button>
+    `;
+    list.parentNode.insertBefore(div, list.nextSibling);
+    document.getElementById('sciRestartBtn').addEventListener('click', () => {
+      div.remove();
+      document.getElementById('sciThemeBadge').style.display = '';
+      this.start();
+    });
+  }
+};
+
+document.getElementById('sciNextBtn').addEventListener('click', () => sciGame.nextQuestion());
 </script>
 </body>
 </html>
