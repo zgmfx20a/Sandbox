@@ -1,0 +1,2139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>AIハッカソン大阪予選 Cブロック</title>
+<style>
+/* ===== Conversation styles ===== */
+#conversation-phase * { margin: 0; padding: 0; box-sizing: border-box; }
+#conversation-phase {
+  position: fixed; inset: 0; z-index: 1;
+  display: flex; justify-content: center; align-items: center;
+  background: #1a1a2e;
+  font-family: Arial, sans-serif;
+  user-select: none;
+}
+#conversation-phase canvas {
+  display: block; border-radius: 12px; cursor: pointer;
+  max-width: 100vw; max-height: 100vh;
+}
+
+/* ===== Slide styles ===== */
+#slide-phase {
+  position: fixed; inset: 0; z-index: 3; display: none;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f4e 100%);
+  font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+  color: #fff;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 24px;
+  cursor: pointer;
+  user-select: none;
+}
+#slide-phase .slide-container {
+  max-width: 720px;
+  width: 100%;
+  text-align: center;
+}
+#slide-phase .slide-title {
+  font-size: clamp(24px, 5vw, 42px);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin-bottom: 40px;
+  background: linear-gradient(135deg, #f7e05e, #f5a623, #ff7eb3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+#slide-phase .slide-item {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  text-align: left;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+#slide-phase .slide-item:hover {
+  transform: translateX(6px);
+  box-shadow: 0 0 20px rgba(247,224,94,0.1);
+}
+#slide-phase .slide-term {
+  font-size: clamp(18px, 3vw, 28px);
+  font-weight: 800;
+  color: #f7e05e;
+  margin-bottom: 6px;
+}
+#slide-phase .slide-term .prefix {
+  color: #ff7eb3;
+}
+#slide-phase .slide-desc {
+  font-size: clamp(13px, 2vw, 17px);
+  line-height: 1.7;
+  color: #b0c0e8;
+}
+#slide-phase .slide-hint {
+  margin-top: 36px;
+  font-size: clamp(12px, 1.6vw, 15px);
+  color: #88aaff;
+  opacity: 0.6;
+  animation: fadePulse 1.5s ease infinite;
+}
+@keyframes fadePulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.9; }
+}
+
+/* ===== Game styles ===== */
+#game-phase {
+  position: fixed; inset: 0; z-index: 2; display: none;
+}
+#game-phase * {
+  margin: 0; padding: 0; box-sizing: border-box;
+}
+#game-phase body {
+  font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+  background: #0a0e27;
+  color: #fff;
+  overflow: hidden;
+  height: 100dvh;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#app {
+  width: 100%;
+  height: 100dvh;
+  position: relative;
+  overflow: hidden;
+}
+.stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+  padding: 16px;
+}
+.stage.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+#stage-title {
+  background: radial-gradient(ellipse at center, #1a1f4e 0%, #0a0e27 100%);
+  text-align: center;
+  gap: 8px;
+}
+#stage-title .logo {
+  font-size: clamp(28px, 6vw, 56px);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  background: linear-gradient(135deg, #f7e05e, #f5a623, #f7e05e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 30px rgba(247, 224, 94, 0.3));
+  line-height: 1.4;
+}
+#stage-title .subtitle {
+  font-size: clamp(14px, 2.5vw, 22px);
+  color: #88aaff;
+  letter-spacing: 0.3em;
+  margin-top: 4px;
+}
+#stage-title .start-btn {
+  margin-top: 32px;
+  padding: 16px 56px;
+  font-size: clamp(18px, 3vw, 26px);
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #f5a623, #f7e05e);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(247, 224, 94, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.1em;
+}
+#stage-title .start-btn:active {
+  transform: scale(0.95);
+}
+#stage-title .scientist-icon {
+  font-size: clamp(48px, 10vw, 80px);
+  margin-bottom: 8px;
+}
+.story-box {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 12px 20px;
+  max-width: 640px;
+  width: 100%;
+  font-size: clamp(13px, 2vw, 16px);
+  line-height: 1.8;
+  color: #d0d8ff;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+.story-box .speaker {
+  font-weight: 700;
+  color: #f7e05e;
+}
+.story-box .highlight {
+  color: #ff7eb3;
+  font-weight: 700;
+}
+.stage-header {
+  text-align: center;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+.stage-header .stage-num {
+  font-size: clamp(12px, 1.8vw, 16px);
+  color: #88aaff;
+  letter-spacing: 0.15em;
+}
+.stage-header .stage-title-text {
+  font-size: clamp(20px, 4vw, 32px);
+  font-weight: 800;
+  background: linear-gradient(135deg, #f7e05e, #f5a623);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.stage-game {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 700px;
+  gap: 12px;
+  min-height: 0;
+}
+.clear-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s;
+  z-index: 10;
+}
+.clear-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.clear-overlay .clear-text {
+  font-size: clamp(36px, 8vw, 72px);
+  font-weight: 900;
+  color: #f7e05e;
+  text-shadow: 0 0 40px rgba(247, 224, 94, 0.6);
+  animation: clearPulse 0.8s ease infinite alternate;
+}
+.clear-overlay .clear-sub {
+  font-size: clamp(16px, 3vw, 24px);
+  color: #aac8ff;
+  margin-top: 8px;
+}
+@keyframes clearPulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.06); }
+}
+.drawers-container {
+  display: flex;
+  gap: clamp(16px, 4vw, 48px);
+  justify-content: center;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.drawer {
+  width: clamp(140px, 30vw, 220px);
+  height: clamp(160px, 34vw, 260px);
+  border-radius: 12px 12px 8px 8px;
+  position: relative;
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+.drawer-a {
+  background: linear-gradient(145deg, #ffd700, #daa520);
+  border: 3px solid #b8860b;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.3), inset 0 2px 4px rgba(255,255,200,0.5);
+}
+.drawer-a .drawer-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 16px;
+  background: linear-gradient(180deg, #b8860b, #8B6914);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.drawer-a .sparkle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  border-radius: 50%;
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+.drawer-a .sparkle:nth-child(1) { top: 15%; left: 20%; animation-delay: 0s; }
+.drawer-a .sparkle:nth-child(2) { top: 25%; right: 25%; animation-delay: 0.5s; }
+.drawer-a .sparkle:nth-child(3) { bottom: 30%; left: 30%; animation-delay: 1s; }
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1.5); }
+}
+.drawer-a-label {
+  text-align: center;
+  font-size: clamp(20px, 4vw, 32px);
+  font-weight: 700;
+  color: #ffd700;
+  margin-top: 8px;
+}
+.drawer-a-message {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: clamp(11px, 1.8vw, 14px);
+  color: #ff7eb3;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.drawer-a-message.show {
+  opacity: 1;
+}
+.drawer-b {
+  background: linear-gradient(145deg, #6b5b4f, #4a3f35);
+  border: 3px solid #3d3228;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+.drawer-b .drawer-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 16px;
+  background: linear-gradient(180deg, #5a4a3e, #3d3228);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.drawer-b .broken-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(10px, 1.6vw, 14px);
+  color: #aa9988;
+  text-align: center;
+  line-height: 1.6;
+  pointer-events: none;
+  width: 90%;
+}
+.drawer-b .broken-label span {
+  display: block;
+}
+.drawer-b .hidden-password {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(14px, 2.5vw, 22px);
+  font-weight: 700;
+  color: #7cfc00;
+  text-shadow: 0 0 20px rgba(124, 252, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.8s;
+  pointer-events: none;
+  text-align: center;
+  padding: 12px;
+}
+.drawer-b .hidden-password.revealed {
+  opacity: 1;
+}
+.drawer-b .scratch-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 9px;
+}
+.drawer-b .scratch-overlay canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 9px;
+}
+.drawer-b-label {
+  text-align: center;
+  font-size: clamp(20px, 4vw, 32px);
+  font-weight: 700;
+  color: #8b7d6b;
+  margin-top: 8px;
+}
+.rub-progress-container {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 8px;
+}
+.rub-progress-text {
+  font-size: clamp(12px, 2vw, 16px);
+  color: #88aaff;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.rub-progress-bar {
+  height: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.rub-progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #f5a623, #f7e05e);
+  border-radius: 4px;
+  transition: width 0.2s;
+}
+.rub-hint {
+  font-size: clamp(11px, 1.6vw, 14px);
+  color: #88aaff;
+  text-align: center;
+  margin-top: 4px;
+  opacity: 0.7;
+}
+#pentagon-container {
+  position: relative;
+  width: clamp(200px, 50vw, 340px);
+  aspect-ratio: 1;
+  flex-shrink: 0;
+}
+#pentagon-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: pointer;
+  touch-action: none;
+}
+.pentagon-progress {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.pentagon-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 2px solid rgba(255,255,255,0.3);
+  transition: all 0.3s;
+}
+.pentagon-dot.done {
+  background: #7cfc00;
+  border-color: #7cfc00;
+  box-shadow: 0 0 12px rgba(124, 252, 0, 0.5);
+}
+.pentagon-order-text {
+  font-size: clamp(12px, 2vw, 16px);
+  color: #88aaff;
+  text-align: center;
+  margin-top: 4px;
+}
+.cards-container {
+  display: flex;
+  gap: clamp(6px, 1.5vw, 16px);
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 4px;
+}
+.card {
+  width: clamp(80px, 18vw, 130px);
+  aspect-ratio: 3/4;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: grab;
+  transition: transform 0.25s, box-shadow 0.25s, opacity 0.25s;
+  border: 3px solid transparent;
+  font-weight: 700;
+  text-align: center;
+  padding: 8px;
+  position: relative;
+  background: rgba(255,255,255,0.08);
+}
+.card:active {
+  cursor: grabbing;
+}
+.card .card-emoji {
+  font-size: clamp(28px, 6vw, 48px);
+  line-height: 1;
+}
+.card .card-label {
+  font-size: clamp(9px, 1.6vw, 13px);
+  color: #d0d8ff;
+  line-height: 1.3;
+}
+.card .card-index {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #88aaff;
+}
+.card.drag-over {
+  border-color: #7cfc00;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(124, 252, 0, 0.3);
+}
+.card.selected {
+  border-color: #f7e05e;
+  box-shadow: 0 0 20px rgba(247, 224, 94, 0.3);
+  transform: translateY(-4px);
+}
+.card.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+.card.correct-placement {
+  border-color: #7cfc00;
+  animation: correctPop 0.4s ease;
+}
+@keyframes correctPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+.card.wrong-shake {
+  animation: wrongShake 0.4s ease;
+  border-color: #ff4757;
+}
+@keyframes wrongShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+.card .card-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 9px;
+  opacity: 0.2;
+  z-index: -1;
+}
+.card .card-bg.stage-0 { background: #4ecdc4; }
+.card .card-bg.stage-1 { background: #45b7d1; }
+.card .card-bg.stage-2 { background: #96ceb4; }
+.card .card-bg.stage-3 { background: #ff6b6b; }
+.card .card-bg.stage-4 { background: #dda0dd; }
+.card .card-number-badge {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.card .card-number-badge.show {
+  opacity: 0.8;
+}
+.stage3-check-area {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.check-btn {
+  padding: 12px 36px;
+  font-size: clamp(16px, 2.5vw, 22px);
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #f5a623, #f7e05e);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(247, 224, 94, 0.3);
+  transition: transform 0.2s;
+  letter-spacing: 0.05em;
+}
+.check-btn:active {
+  transform: scale(0.95);
+}
+.stage3-message {
+  font-size: clamp(13px, 2vw, 16px);
+  color: #ff7eb3;
+  text-align: center;
+  min-height: 1.5em;
+}
+#stage-ending {
+  background: radial-gradient(ellipse at center, #1a1f4e 0%, #0a0e27 100%);
+  text-align: center;
+  gap: 16px;
+}
+#stage-ending .ending-title {
+  font-size: clamp(32px, 8vw, 72px);
+  font-weight: 900;
+  background: linear-gradient(135deg, #f7e05e, #f5a623, #ff7eb3, #f7e05e);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientMove 2s ease infinite;
+  line-height: 1.3;
+}
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+#stage-ending .ending-sub {
+  font-size: clamp(16px, 3vw, 28px);
+  color: #88aaff;
+  letter-spacing: 0.15em;
+}
+#stage-ending .ending-message {
+  background: rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 16px 24px;
+  max-width: 560px;
+  font-size: clamp(14px, 2.2vw, 18px);
+  line-height: 2;
+  color: #d0d8ff;
+}
+#stage-ending .ending-message .speaker {
+  font-weight: 700;
+  color: #f7e05e;
+}
+.restart-btn {
+  padding: 14px 48px;
+  font-size: clamp(16px, 2.5vw, 22px);
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #f5a623, #f7e05e);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(247, 224, 94, 0.3);
+  transition: transform 0.2s;
+  letter-spacing: 0.05em;
+}
+.restart-btn:active {
+  transform: scale(0.95);
+}
+.confetti-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  overflow: hidden;
+}
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  top: -20px;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; }
+}
+.scratch-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: particleFade 0.6s ease forwards;
+}
+@keyframes particleFade {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+}
+@media (max-width: 480px) {
+  .story-box { padding: 8px 12px; font-size: 12px; }
+  .drawers-container { gap: 12px; }
+  .cards-container { gap: 6px; }
+}
+</style>
+</head>
+<body>
+
+<div id="conversation-phase">
+  <canvas id="c"></canvas>
+</div>
+
+<div id="slide-phase" onclick="slideToGame()">
+  <div class="slide-container">
+    <div class="slide-title">🧬 パパがつぶやいた3つの「Pseudo」</div>
+    <div class="slide-item">
+      <div class="slide-term"><span class="prefix">Pseudo</span>gene</div>
+      <div class="slide-desc">壊れて働かなくなった遺伝子</div>
+    </div>
+    <div class="slide-item">
+      <div class="slide-term"><span class="prefix">Pseudo</span>rotation</div>
+      <div class="slide-desc">分子構造で回転していないのに回転しているように見える変化</div>
+    </div>
+    <div class="slide-item">
+      <div class="slide-term"><span class="prefix">Pseudo</span>time</div>
+      <div class="slide-desc">細胞の成長順序を推定した仮想的な時間</div>
+    </div>
+    <div class="slide-hint">▼ クリックでゲームスタート</div>
+  </div>
+</div>
+
+<div id="game-phase">
+  <div id="app">
+    <div id="stage-title" class="stage active">
+      <div class="scientist-icon">🧪</div>
+      <div class="logo">にせもの研究所のヒミツ</div>
+      <div class="subtitle">〜 見習い科学者キミの冒険 〜</div>
+      <button class="start-btn" onclick="app.startGame()">はじめる</button>
+    </div>
+    <div id="stage-1" class="stage">
+      <div class="stage-header">
+        <div class="stage-num">🔬 STAGE 1</div>
+        <div class="stage-title-text">どっちが本物のカギ？</div>
+      </div>
+      <div class="story-box">
+        <span class="speaker">博士：</span>「この部屋の奥にある、秘密の部屋を開けてごらん」<br>
+        キミの目の前には2つの引き出しがある。キラキラ光る<span class="highlight">A</span>と、ボロボロの<span class="highlight">B</span>。さあ、どっちを調べる？
+      </div>
+      <div class="stage-game">
+        <div class="drawers-container">
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div class="drawer drawer-a" id="drawer-a" onclick="app.stage1.clickDrawerA()">
+              <div class="sparkle"></div>
+              <div class="sparkle"></div>
+              <div class="sparkle"></div>
+              <div class="drawer-handle"></div>
+              <div class="drawer-a-message" id="drawer-a-msg">ガチャガチャ… 開かない！</div>
+            </div>
+            <div class="drawer-a-label">引き出しA</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div class="drawer drawer-b" id="drawer-b">
+              <div class="drawer-handle"></div>
+              <div class="broken-label" id="broken-label">
+                <span>🔴 こわれて使えません</span>
+                <span>ゴミです</span>
+              </div>
+              <div class="hidden-password" id="hidden-password">
+                🔑 パスワード発見！<br>「かがくのちから」
+              </div>
+              <div class="scratch-overlay" id="scratch-overlay">
+                <canvas id="scratch-canvas"></canvas>
+              </div>
+            </div>
+            <div class="drawer-b-label">引き出しB</div>
+          </div>
+        </div>
+        <div class="rub-progress-container" id="rub-progress-container">
+          <div class="rub-progress-text" id="rub-progress-text">🔍 虫眼鏡でこすってみよう！</div>
+          <div class="rub-progress-bar">
+            <div class="rub-progress-bar-fill" id="rub-progress-fill"></div>
+          </div>
+          <div class="rub-hint" id="rub-hint">指でこすると…何か見えてくるかも？</div>
+        </div>
+      </div>
+      <div class="clear-overlay" id="stage1-clear">
+        <div class="clear-text">✨ STAGE CLEAR ✨</div>
+        <div class="clear-sub">壊れてるように見えても、中にはヒミツが隠れているんだ！</div>
+      </div>
+    </div>
+    <div id="stage-2" class="stage">
+      <div class="stage-header">
+        <div class="stage-num">🔵 STAGE 2</div>
+        <div class="stage-title-text">まわらない「まわるおもちゃ」</div>
+      </div>
+      <div class="story-box">
+        大きなガラスの壁が行く手を阻んでいる。壁を開けるには<span class="highlight">5角形のハンドル</span>を回さなければ…でも、ハンドルはガッチリ固定されて回らない！<br>
+        キミはハンドルの角を<span class="highlight">パタパタ</span>と交互に押してみることにした。
+      </div>
+      <div class="stage-game">
+        <div id="pentagon-container">
+          <canvas id="pentagon-canvas"></canvas>
+        </div>
+        <div class="pentagon-progress" id="pentagon-progress">
+          <div class="pentagon-dot"></div>
+          <div class="pentagon-dot"></div>
+          <div class="pentagon-dot"></div>
+          <div class="pentagon-dot"></div>
+          <div class="pentagon-dot"></div>
+        </div>
+        <div class="pentagon-order-text" id="pentagon-order-text">🔄 はんぶんこっち、はんぶんあっち…交互に押してみよう！</div>
+      </div>
+      <div class="clear-overlay" id="stage2-clear">
+        <div class="clear-text">✨ STAGE CLEAR ✨</div>
+        <div class="clear-sub">回らなくても、パタパタ動かせば形を変えられるんだ！</div>
+      </div>
+    </div>
+    <div id="stage-3" class="stage">
+      <div class="stage-header">
+        <div class="stage-num">🟡 STAGE 3</div>
+        <div class="stage-title-text">バラバラの写真</div>
+      </div>
+      <div class="story-box">
+        <span class="speaker">博士：</span>「この写真が撮られた<span class="highlight">正しい順番</span>に並び替えなさい。そうすればクリアだ！」<br>
+        カメラの時計が壊れていて、日付はわからない。でも、イモムシの成長のようすがヒントになる！
+      </div>
+      <div class="stage-game">
+        <div class="cards-container" id="cards-container"></div>
+        <div class="stage3-check-area">
+          <button class="check-btn" id="stage3-check-btn" onclick="app.stage3.checkOrder()">確かめる！</button>
+          <div class="stage3-message" id="stage3-message"></div>
+        </div>
+      </div>
+      <div class="clear-overlay" id="stage3-clear">
+        <div class="clear-text">✨ STAGE CLEAR ✨</div>
+        <div class="clear-sub">時計がなくても、変化のようすを並べれば時間の流れがわかる！</div>
+      </div>
+    </div>
+    <div id="stage-ending" class="stage">
+      <div class="scientist-icon" style="font-size:clamp(48px,10vw,80px);">🏆</div>
+      <div class="ending-title">おめでとう！<br>天才科学者！</div>
+      <div class="ending-sub">すべての謎を解き明かした！</div>
+      <div class="ending-message">
+        <span class="speaker">博士：</span>「よく見破ったね。<br>
+        『使えない』『動かない』『時間がわからない』っていう見た目の嘘に騙されず、<br>
+        じっくり観察したキミの勝ちだ！」<br><br>
+        <span style="color:#88aaff;font-size:0.9em;">★ 教訓：</span>
+        <span style="color:#ff7eb3;">見た目のウソに惑わされず、じっくり観察することが大切！</span>
+      </div>
+      <button class="restart-btn" onclick="app.reset()">もう一度遊ぶ</button>
+    </div>
+  </div>
+  <div class="confetti-container" id="confetti-container"></div>
+</div>
+
+<script>
+// ===========================
+// Phase 1: Conversation
+// ===========================
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+const W = 900, H = 600;
+canvas.width = W;
+canvas.height = H;
+
+const dad = {
+  x: 250, y: 420, baseY: 420,
+  skin: '#F5D6B8', hair: '#888888',
+  shirt: '#4A6FA5', name: 'パパ',
+};
+const daughter = {
+  x: 650, y: 440, baseY: 440,
+  skin: '#FDE8D0', hair: '#3A2A1A',
+  shirt: '#FF8FAB', name: '娘',
+};
+
+const script = [
+  { speaker: 'dad', text: 'ハッカソン行こう！' },
+  { speaker: 'daughter', text: '学会発表あるから\nダメだよ！' },
+  { speaker: 'dad', text: 'え' },
+  { type: 'image', src: 'rinka.PNG' },
+  { type: 'bigtext', text: 'AIハッカソン大阪予選\nCブロック\nスタート！' },
+  { speaker: 'dad', text: 'デタラメだったら\nエントロピーで完全に\n機械学習ネタだったのに残念' },
+  { speaker: 'dad', text: '嘘...\nPseudoか...' },
+  { speaker: 'dad', text: 'Pseudogene' },
+  { speaker: 'dad', text: 'Pseudorotation' },
+  { speaker: 'dad', text: 'Pseudotime\n… あたりかな …' },
+  { speaker: 'daughter', text: 'さっきから何を\nブツブツ言ってるの！' },
+  { speaker: 'dad', text: '幻聴か...' },
+];
+
+let rinkaImage = null;
+let bigTextTime = 0;
+let isImageMode = false;
+let isBigTextMode = false;
+
+let index = 0;
+let charIdx = 0;
+let isTyping = false;
+let time = 0;
+let cloudX = [100, 400, 700];
+let cloudY = [60, 80, 50];
+let hintAlpha = 1;
+
+let audioCtx;
+
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playType(isDaughter) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(isDaughter ? 1100 : 700, audioCtx.currentTime);
+  gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.06);
+}
+
+function playAdvance() {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(523, audioCtx.currentTime);
+  osc.frequency.setValueAtTime(659, audioCtx.currentTime + 0.08);
+  gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.2);
+}
+
+function playEnd() {
+  if (!audioCtx) return;
+  const notes = [523, 659, 784, 1047];
+  notes.forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.12);
+    gain.gain.setValueAtTime(0.12, audioCtx.currentTime + i * 0.12);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.12 + 0.2);
+    osc.start(audioCtx.currentTime + i * 0.12);
+    osc.stop(audioCtx.currentTime + i * 0.12 + 0.2);
+  });
+}
+
+function loadSceneImage(src) {
+  const img = new Image();
+  img.src = src;
+  return img;
+}
+
+function drawFullImage(img) {
+  if (!img || !img.complete || !img.naturalWidth) return;
+  const iw = img.naturalWidth, ih = img.naturalHeight;
+  const scale = Math.max(W / iw, H / ih);
+  const sw = iw * scale, sh = ih * scale;
+  const sx = (W - sw) / 2, sy = (H - sh) / 2;
+  ctx.drawImage(img, sx, sy, sw, sh);
+}
+
+function drawBigText(text, t) {
+  const lines = text.split('\n');
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(0, 0, W, H);
+  const pulse = Math.sin(t * 3) * 0.5 + 0.5;
+  ctx.strokeStyle = `rgba(255,200,50,${0.2 + pulse * 0.3})`;
+  ctx.lineWidth = 6;
+  roundRect(ctx, 40, 100, W - 80, H - 200, 24);
+  ctx.stroke();
+  ctx.strokeStyle = `rgba(255,255,255,${0.1 + pulse * 0.2})`;
+  ctx.lineWidth = 2;
+  roundRect(ctx, 44, 104, W - 88, H - 208, 20);
+  ctx.stroke();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const lh = 70;
+  const totalH = lines.length * lh;
+  let y = (H - totalH) / 2 + lh / 2;
+  for (const line of lines) {
+    const isLast = line === lines[lines.length - 1];
+    const fontSize = isLast ? 72 : 48;
+    const color = isLast ? '#FFD700' : '#FFFFFF';
+    ctx.font = `bold ${fontSize}px Arial`;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillText(line, W / 2 + 3, y + 3);
+    ctx.fillStyle = color;
+    ctx.fillText(line, W / 2, y);
+    if (isLast) {
+      const m = ctx.measureText(line);
+      const uw = m.width + 40;
+      ctx.strokeStyle = `rgba(255,200,50,${0.5 + pulse * 0.5})`;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo((W - uw) / 2, y + 28);
+      ctx.lineTo((W + uw) / 2, y + 28);
+      ctx.stroke();
+    }
+    y += lh;
+  }
+  ctx.restore();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
+function drawDad(c) {
+  const x = c.x, y = c.y;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = '#444';
+  ctx.fillRect(-24, 40, 16, 30);
+  ctx.fillRect(8, 40, 16, 30);
+  ctx.fillStyle = c.shirt;
+  drawEllipse(ctx, 0, 0, 50, 55);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(-10, -30);
+  ctx.lineTo(0, -15);
+  ctx.lineTo(10, -30);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  drawEllipse(ctx, 0, -45, 32, 36);
+  ctx.fillStyle = c.skin;
+  ctx.fill();
+  ctx.fillStyle = c.hair;
+  ctx.beginPath();
+  ctx.ellipse(0, -72, 32, 18, 0, Math.PI, 0);
+  ctx.fill();
+  ctx.fillRect(-30, -72, 8, 20);
+  ctx.fillRect(22, -72, 8, 20);
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(-20, -52);
+  ctx.lineTo(-8, -54);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(20, -52);
+  ctx.lineTo(8, -54);
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(-16, -44, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(16, -44, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#555';
+  ctx.beginPath();
+  ctx.arc(-14, -43, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(18, -43, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(-16, -44, 12, 10, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(16, -44, 12, 10, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-4, -44);
+  ctx.lineTo(4, -44);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-28, -44);
+  ctx.lineTo(-36, -48);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(28, -44);
+  ctx.lineTo(36, -48);
+  ctx.stroke();
+  ctx.fillStyle = '#777';
+  ctx.beginPath();
+  ctx.ellipse(-8, -32, 10, 5, -0.1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(8, -32, 10, 5, 0.1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0, -24, 6, 0.1, Math.PI - 0.1);
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 4;
+  ctx.font = 'bold 18px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.strokeText(c.name, 0, -100);
+  ctx.fillText(c.name, 0, -100);
+  ctx.restore();
+}
+
+function drawEllipse(ctx, x, y, rx, ry) {
+  ctx.beginPath();
+  ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+}
+
+function drawDaughter(c) {
+  const x = c.x, y = c.y;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = '#555';
+  ctx.fillRect(-16, 35, 12, 28);
+  ctx.fillRect(4, 35, 12, 28);
+  ctx.fillStyle = c.shirt;
+  drawEllipse(ctx, 0, 0, 40, 48);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(-30, 20);
+  ctx.lineTo(30, 20);
+  ctx.lineTo(35, 50);
+  ctx.lineTo(-35, 50);
+  ctx.closePath();
+  ctx.fillStyle = '#4B6E8C';
+  ctx.fill();
+  drawEllipse(ctx, 0, -38, 28, 32);
+  ctx.fillStyle = c.skin;
+  ctx.fill();
+  ctx.fillStyle = c.hair;
+  ctx.beginPath();
+  ctx.ellipse(0, -62, 28, 16, 0, Math.PI, 0);
+  ctx.fill();
+  ctx.fillRect(-26, -62, 8, 40);
+  ctx.fillRect(18, -62, 8, 40);
+  ctx.beginPath();
+  ctx.moveTo(-22, -62);
+  ctx.quadraticCurveTo(-18, -50, -6, -55);
+  ctx.lineTo(-8, -66);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(0, -68);
+  ctx.quadraticCurveTo(6, -56, 14, -60);
+  ctx.lineTo(16, -68);
+  ctx.fill();
+  ctx.fillStyle = '#FF4466';
+  ctx.beginPath();
+  ctx.ellipse(-14, -72, 8, 5, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(14, -72, 8, 5, 0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(-13, -38, 9, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(13, -38, 9, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#3A2A1A';
+  ctx.beginPath();
+  ctx.arc(-11, -37, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(15, -37, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(-13, -40, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(13, -40, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = c.hair;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(-20, -48);
+  ctx.lineTo(-8, -49);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(20, -48);
+  ctx.lineTo(8, -49);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, -26, 6, 0.1, Math.PI - 0.1);
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  drawEllipse(ctx, -20, -28, 6, 4);
+  ctx.fillStyle = 'rgba(255,150,150,0.4)';
+  ctx.fill();
+  drawEllipse(ctx, 20, -28, 6, 4);
+  ctx.fillStyle = 'rgba(255,150,150,0.4)';
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 4;
+  ctx.font = 'bold 18px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.strokeText(c.name, 0, -100);
+  ctx.fillText(c.name, 0, -100);
+  ctx.restore();
+}
+
+function drawBubble(speaker, text, isDad) {
+  if (!text) return;
+  ctx.save();
+  ctx.font = '16px Arial';
+  const lines = text.split('\n');
+  let maxW = 0;
+  for (const line of lines) {
+    const m = ctx.measureText(line);
+    if (m.width > maxW) maxW = m.width;
+  }
+  const lh = 24;
+  const bw = Math.max(maxW + 32, 60);
+  const bh = Math.max(lines.length * lh + 32, 40);
+  const bx = speaker.x - bw / 2;
+  const by = speaker.y - 170 - bh / 2;
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  roundRect(ctx, bx, by, bw, bh, 16);
+  ctx.fill();
+  const tailX = speaker.x + (isDad ? 1 : -1) * 20;
+  const tailTipX = speaker.x + (isDad ? 1 : -1) * 35;
+  const tailBaseY = by + bh;
+  ctx.beginPath();
+  ctx.moveTo(tailX - 10, tailBaseY);
+  ctx.lineTo(tailTipX, tailBaseY + 20);
+  ctx.lineTo(tailX + 10, tailBaseY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#333';
+  ctx.font = '16px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const tx = speaker.x;
+  let ty = by + bh / 2 - ((lines.length - 1) * lh) / 2;
+  for (const line of lines) {
+    ctx.fillText(line, tx, ty);
+    ty += lh;
+  }
+  ctx.restore();
+}
+
+function drawScene() {
+  if (isImageMode && rinkaImage) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    drawFullImage(rinkaImage);
+    return;
+  }
+  if (isBigTextMode) {
+    drawBigText(script[index].text, bigTextTime);
+    return;
+  }
+  ctx.fillStyle = '#87CEEB';
+  ctx.fillRect(0, 0, W, H);
+  ctx.beginPath();
+  ctx.arc(780, 80, 50, 0, Math.PI * 2);
+  ctx.fillStyle = '#FFD700';
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  for (let i = 0; i < 3; i++) {
+    const cx = cloudX[i], cy = cloudY[i];
+    ctx.beginPath();
+    ctx.arc(cx, cy, 25, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + 22, cy - 8, 20, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx - 22, cy - 5, 20, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.fillStyle = '#7ec850';
+  ctx.fillRect(0, 480, W, 120);
+  drawDad(dad);
+  drawDaughter(daughter);
+  if (index < script.length) {
+    const line = script[index];
+    const speaker = line.speaker === 'dad' ? dad : daughter;
+    const displayText = isTyping ? line.text.substring(0, charIdx) : line.text;
+    drawBubble(speaker, displayText, speaker === dad);
+  }
+  ctx.globalAlpha = hintAlpha;
+  ctx.fillStyle = '#666';
+  ctx.font = '14px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText('クリック / スペースキーで会話を進める', W / 2, 560);
+  ctx.globalAlpha = 1;
+}
+
+function transitionToSlide() {
+  document.getElementById('conversation-phase').style.display = 'none';
+  document.getElementById('slide-phase').style.display = 'flex';
+}
+
+function slideToGame() {
+  document.getElementById('slide-phase').style.display = 'none';
+  document.getElementById('game-phase').style.display = 'block';
+  app.startGame();
+}
+
+function nextLine() {
+  if (index >= script.length) return;
+  const line = script[index];
+  isImageMode = false;
+  isBigTextMode = false;
+  if (line.type === 'image') {
+    isImageMode = true;
+    if (!rinkaImage) rinkaImage = loadSceneImage(line.src);
+    isTyping = false;
+    return;
+  }
+  if (line.type === 'bigtext') {
+    isBigTextMode = true;
+    bigTextTime = 0;
+    isTyping = false;
+    return;
+  }
+  const speaker = line.speaker === 'dad' ? dad : daughter;
+  let bt = 0;
+  const bounce = () => {
+    bt += 0.08;
+    const s = 1 + Math.sin(bt * Math.PI * 2) * 0.04 * (1 - bt);
+    if (bt < 1) requestAnimationFrame(bounce);
+  };
+  bounce();
+  isTyping = true;
+  charIdx = 0;
+  function type() {
+    if (charIdx > line.text.length) {
+      isTyping = false;
+      return;
+    }
+    const ch = line.text.charAt(charIdx);
+    if (ch !== '\n' && ch !== '') playType(line.speaker === 'daughter');
+    charIdx++;
+    setTimeout(type, 50);
+  }
+  type();
+}
+
+function advance() {
+  if (isTyping) {
+    const line = script[index];
+    charIdx = line.text.length;
+    isTyping = false;
+    return;
+  }
+  if (isImageMode || isBigTextMode) {
+    isImageMode = false;
+    isBigTextMode = false;
+    index++;
+    if (index >= script.length) {
+      playEnd();
+      setTimeout(transitionToSlide, 800);
+    } else {
+      playAdvance();
+    }
+    nextLine();
+    return;
+  }
+  index++;
+  if (index >= script.length) {
+    playEnd();
+    setTimeout(transitionToSlide, 800);
+  } else {
+    playAdvance();
+  }
+  nextLine();
+}
+
+canvas.addEventListener('click', () => {
+  initAudio();
+  advance();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ' || e.key === 'Space') {
+    e.preventDefault();
+    initAudio();
+    advance();
+  }
+});
+
+setInterval(() => {
+  hintAlpha = hintAlpha === 1 ? 0.3 : 1;
+}, 800);
+
+nextLine();
+
+function loop(t) {
+  time = t / 1000;
+  if (isBigTextMode) bigTextTime = time;
+  if (!isImageMode && !isBigTextMode) {
+    dad.y = dad.baseY + Math.sin(time * 2 + 0) * 3;
+    daughter.y = daughter.baseY + Math.sin(time * 2 + 1) * 3;
+    for (let i = 0; i < 3; i++) {
+      cloudX[i] += 0.15;
+      if (cloudX[i] > 950) cloudX[i] = -80;
+    }
+  }
+  drawScene();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ===========================
+// Phase 2: Nisemono Game
+// ===========================
+const app = {
+  currentStage: 0,
+  transitionTimer: null,
+  cardData: [
+    { emoji: '🐛', label: '小さな\nイモムシ', bg: 'stage-0' },
+    { emoji: '🐛', label: '大きい\nイモムシ', bg: 'stage-1' },
+    { emoji: '🫘', label: 'サナギに\nなる', bg: 'stage-2' },
+    { emoji: '🦋', label: 'ハネが\n生える', bg: 'stage-3' },
+    { emoji: '🦋', label: 'キレイな\nチョウチョ', bg: 'stage-4' },
+  ],
+
+  init() {
+    this.stage1.init();
+    this.stage2.init();
+    this.stage3.init();
+  },
+
+  showStage(n) {
+    document.querySelectorAll('#game-phase .stage').forEach((el, i) => {
+      el.classList.toggle('active', i === n);
+    });
+    this.currentStage = n;
+  },
+
+  clearTransition(stageNum, nextStage) {
+    const overlay = document.getElementById(`stage${stageNum}-clear`);
+    overlay.classList.add('show');
+    if (this.transitionTimer) clearTimeout(this.transitionTimer);
+    this.transitionTimer = setTimeout(() => {
+      overlay.classList.remove('show');
+      this.showStage(nextStage);
+      if (nextStage === 4) this.showEnding();
+    }, 2200);
+  },
+
+  startGame() {
+    this.showStage(1);
+    setTimeout(() => this.stage1.activate(), 300);
+  },
+
+  stage1: {
+    rubDistance: 0,
+    rubThreshold: 600,
+    isRubbing: false,
+    lastX: 0,
+    lastY: 0,
+    scratchCtx: null,
+    dirty: true,
+    activated: false,
+    complete: false,
+
+    init() {
+      this.scratchCtx = null;
+      this.dirty = true;
+      this.complete = false;
+    },
+
+    activate() {
+      if (this.activated && !this.complete) {
+        this.rubDistance = 0;
+        this.lastX = 0;
+        this.lastY = 0;
+        this.isRubbing = false;
+        this.updateUI();
+      }
+      this.activated = true;
+      const container = document.getElementById('scratch-overlay');
+      const canvas = document.getElementById('scratch-canvas');
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      this.scratchCtx = ctx;
+      ctx.fillStyle = '#5a4a3e';
+      ctx.fillRect(0, 0, rect.width, rect.height);
+      ctx.strokeStyle = '#3d3228';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 6; i++) {
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * rect.width, Math.random() * rect.height);
+        ctx.lineTo(Math.random() * rect.width, Math.random() * rect.height);
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#8b7d6b';
+      ctx.font = `bold ${Math.min(rect.width * 0.07, 14)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('こわれて使えません', rect.width / 2, rect.height * 0.4);
+      ctx.fillText('ゴミです', rect.width / 2, rect.height * 0.6);
+      this.dirty = true;
+    },
+
+    resize() {
+      if (this.complete) return;
+      this.activated = false;
+      setTimeout(() => this.activate(), 100);
+    },
+
+    onRubStart(x, y) {
+      if (this.complete) return;
+      this.isRubbing = true;
+      this.lastX = x;
+      this.lastY = y;
+      document.getElementById('rub-hint').textContent = '🔍 こすってこすって…！';
+    },
+
+    onRubMove(x, y) {
+      if (!this.isRubbing || this.complete) return;
+      const dx = x - this.lastX;
+      const dy = y - this.lastY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 2) return;
+      this.rubDistance += dist;
+      this.lastX = x;
+      this.lastY = y;
+      const ctx = this.scratchCtx;
+      if (ctx) {
+        const rect = document.getElementById('scratch-overlay').getBoundingClientRect();
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x - rect.left, y - rect.top, 18, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(this.lastX - rect.left, this.lastY - rect.top);
+        ctx.lineTo(x - rect.left, y - rect.top);
+        ctx.stroke();
+        ctx.globalCompositeOperation = 'source-over';
+      }
+      this.spawnParticles(x, y);
+      this.updateUI();
+    },
+
+    onRubEnd() {
+      this.isRubbing = false;
+    },
+
+    spawnParticles(x, y) {
+      const container = document.getElementById('scratch-overlay');
+      for (let i = 0; i < 2; i++) {
+        const p = document.createElement('div');
+        p.className = 'scratch-particle';
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 20 + Math.random() * 30;
+        p.style.cssText = `left:${x}px;top:${y}px;background:hsl(${40+Math.random()*20},70%,60%);--dx:${Math.cos(angle)*dist}px;--dy:${Math.sin(angle)*dist}px`;
+        container.appendChild(p);
+        setTimeout(() => p.remove(), 600);
+      }
+    },
+
+    updateUI() {
+      const progress = Math.min(this.rubDistance / this.rubThreshold, 1);
+      const fill = document.getElementById('rub-progress-fill');
+      fill.style.width = `${progress * 100}%`;
+      if (progress < 0.3) {
+        document.getElementById('rub-progress-text').textContent = '🔍 もっとこすってみよう！';
+      } else if (progress < 0.7) {
+        document.getElementById('rub-progress-text').textContent = '👀 なにか見えてきた…！';
+      } else if (progress < 1) {
+        document.getElementById('rub-progress-text').textContent = '✨ もう少し！あと少し！';
+      } else {
+        document.getElementById('rub-progress-text').textContent = '🔑 パスワードを発見した！';
+        document.getElementById('rub-hint').textContent = '';
+        this.completeStage();
+      }
+    },
+
+    completeStage() {
+      this.complete = true;
+      document.getElementById('hidden-password').classList.add('revealed');
+      document.getElementById('rub-hint').textContent = '';
+      const overlay = document.getElementById('scratch-overlay');
+      overlay.style.transition = 'opacity 0.8s';
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.style.display = 'none', 800);
+      setTimeout(() => {
+        app.clearTransition(1, 2);
+        setTimeout(() => app.stage2.activate(), 600);
+      }, 1500);
+    },
+
+    clickDrawerA() {
+      const msg = document.getElementById('drawer-a-msg');
+      msg.classList.add('show');
+      setTimeout(() => msg.classList.remove('show'), 2000);
+    },
+  },
+
+  stage2: {
+    canvas: null,
+    ctx: null,
+    vertices: [],
+    order: [0, 2, 4, 1, 3],
+    currentStep: 0,
+    pressed: [],
+    animating: false,
+    activated: false,
+
+    init() {
+      this.canvas = document.getElementById('pentagon-canvas');
+      this.ctx = this.canvas.getContext('2d');
+      this.currentStep = 0;
+      this.pressed = [];
+      this.activated = false;
+    },
+
+    activate() {
+      if (this.activated) return;
+      this.activated = true;
+      this.currentStep = 0;
+      this.pressed = [];
+      this.setupCanvas();
+      this.setupEvents();
+      this.draw();
+      this.updateDots();
+    },
+
+    setupCanvas() {
+      const container = document.getElementById('pentagon-container');
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      this.canvas.width = rect.width * dpr;
+      this.canvas.height = rect.height * dpr;
+      this.ctx.scale(dpr, dpr);
+      this.canvas.style.width = rect.width + 'px';
+      this.canvas.style.height = rect.height + 'px';
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const r = Math.min(cx, cy) * 0.65;
+      this.vertices = [];
+      for (let i = 0; i < 5; i++) {
+        const angle = (2 * Math.PI * i / 5) - Math.PI / 2;
+        this.vertices.push({
+          x: cx + r * Math.cos(angle),
+          y: cy + r * Math.sin(angle),
+          angle: angle,
+        });
+      }
+      this.centerX = cx;
+      this.centerY = cy;
+      this.radius = r;
+    },
+
+    setupEvents() {
+      const c = this.canvas;
+      const getPos = (e) => {
+        const rect = c.getBoundingClientRect();
+        const t = e.touches ? e.touches[0] : e;
+        return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+      };
+      const onDown = (e) => {
+        e.preventDefault();
+        if (this.animating) return;
+        const pos = getPos(e);
+        this.handleClick(pos.x, pos.y);
+      };
+      c.addEventListener('mousedown', onDown);
+      c.addEventListener('touchstart', onDown, { passive: false });
+    },
+
+    handleClick(x, y) {
+      const hitRadius = 35;
+      for (let i = 0; i < this.vertices.length; i++) {
+        const v = this.vertices[i];
+        const dx = x - v.x;
+        const dy = y - v.y;
+        if (dx * dx + dy * dy < hitRadius * hitRadius) {
+          this.pressVertex(i);
+          return;
+        }
+      }
+    },
+
+    pressVertex(index) {
+      if (this.pressed.includes(index)) return;
+      const expected = this.order[this.currentStep];
+      if (index === expected) {
+        this.pressed.push(index);
+        this.currentStep++;
+        this.animatePress(index, true);
+        if (this.currentStep >= this.order.length) {
+          setTimeout(() => this.complete(), 600);
+        }
+      } else {
+        this.animatePress(index, false);
+        setTimeout(() => {
+          this.currentStep = 0;
+          this.pressed = [];
+          this.draw();
+          this.updateDots();
+          document.getElementById('pentagon-order-text').textContent = '🔄 もう一度、交互に押してみよう！';
+        }, 500);
+      }
+      this.updateDots();
+    },
+
+    animatePress(index, correct) {
+      this.animating = true;
+      const v = this.vertices[index];
+      const color = correct ? '#7cfc00' : '#ff4757';
+      let r = 0;
+      const ripple = () => {
+        const ctx = this.ctx;
+        const dpr = window.devicePixelRatio || 1;
+        const scale = this.canvas.width / dpr;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(v.x, v.y, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 1 - r / 40;
+        ctx.stroke();
+        ctx.restore();
+        r += 3;
+        if (r < 40) {
+          requestAnimationFrame(ripple);
+        } else {
+          setTimeout(() => {
+            if (!correct) {
+              const ctx2 = this.ctx;
+              ctx2.save();
+              ctx2.fillStyle = 'rgba(255,71,87,0.15)';
+              ctx2.fillRect(0, 0, this.canvas.width / scale, this.canvas.height / scale);
+              ctx2.restore();
+            }
+            this.draw();
+            this.animating = false;
+          }, 100);
+        }
+      };
+      ripple();
+      if (correct) {
+        document.getElementById('pentagon-order-text').textContent =
+          `✅ ${this.currentStep}/${this.order.length} 押した！`;
+      } else {
+        document.getElementById('pentagon-order-text').textContent = '❌ ちがう順番！もう一度！';
+      }
+    },
+
+    draw() {
+      const ctx = this.ctx;
+      const dpr = window.devicePixelRatio || 1;
+      const w = this.canvas.width / dpr;
+      const h = this.canvas.height / dpr;
+      ctx.clearRect(0, 0, w, h);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(this.centerX, this.centerY, this.radius * 0.7, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.03)';
+      ctx.fill();
+      ctx.restore();
+      ctx.save();
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const v = this.vertices[i];
+        if (i === 0) ctx.moveTo(v.x, v.y);
+        else ctx.lineTo(v.x, v.y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+      ctx.save();
+      for (let i = 0; i < 5; i++) {
+        const v = this.vertices[i];
+        ctx.beginPath();
+        ctx.moveTo(this.centerX, this.centerY);
+        ctx.lineTo(v.x, v.y);
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      ctx.restore();
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.font = `${this.radius * 0.4}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🔒', this.centerX, this.centerY);
+      ctx.restore();
+      for (let i = 0; i < this.vertices.length; i++) {
+        const v = this.vertices[i];
+        const pressed = this.pressed.includes(i);
+        ctx.save();
+        if (pressed) {
+          ctx.shadowColor = '#7cfc00';
+          ctx.shadowBlur = 20;
+        }
+        ctx.beginPath();
+        ctx.arc(v.x, v.y, pressed ? 18 : 22, 0, Math.PI * 2);
+        const grad = ctx.createRadialGradient(v.x, v.y, 0, v.x, v.y, 22);
+        if (pressed) {
+          grad.addColorStop(0, '#7cfc00');
+          grad.addColorStop(1, '#3a7d00');
+        } else {
+          grad.addColorStop(0, '#d0d8ff');
+          grad.addColorStop(1, '#6a7ab5');
+        }
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = pressed ? '#7cfc00' : 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+        ctx.save();
+        ctx.fillStyle = pressed ? '#fff' : '#b0b8d0';
+        ctx.font = `bold ${pressed ? 16 : 18}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const labels = ['①', '②', '③', '④', '⑤'];
+        ctx.fillText(pressed ? '✓' : labels[i], v.x, v.y);
+        ctx.restore();
+      }
+    },
+
+    updateDots() {
+      const dots = document.querySelectorAll('#pentagon-progress .pentagon-dot');
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('done', i < this.currentStep);
+      });
+    },
+
+    complete() {
+      app.clearTransition(2, 3);
+      setTimeout(() => app.stage3.activate(), 600);
+    },
+  },
+
+  stage3: {
+    currentOrder: [],
+    selected: null,
+    dragSrc: null,
+    dragClone: null,
+    activated: false,
+
+    init() {
+      this.currentOrder = [0, 1, 2, 3, 4];
+    },
+
+    activate() {
+      if (this.activated) return;
+      this.activated = true;
+      this.selected = null;
+      this.shuffle();
+      this.renderCards();
+      this.setupDragEvents();
+      document.getElementById('stage3-message').textContent = '';
+    },
+
+    shuffle() {
+      const arr = [0, 1, 2, 3, 4];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      this.currentOrder = arr;
+    },
+
+    renderCards() {
+      const container = document.getElementById('cards-container');
+      container.innerHTML = '';
+      this.currentOrder.forEach((cardIndex, posIndex) => {
+        const data = app.cardData[cardIndex];
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.cardIndex = cardIndex;
+        card.dataset.posIndex = posIndex;
+        card.innerHTML = `
+          <div class="card-bg ${data.bg}"></div>
+          <div class="card-index">${posIndex + 1}</div>
+          <div class="card-emoji">${data.emoji}</div>
+          <div class="card-label">${data.label.replace('\n', '<br>')}</div>
+        `;
+        card.addEventListener('click', () => app.stage3.onCardClick(card));
+        container.appendChild(card);
+      });
+    },
+
+    onCardClick(card) {
+      if (this.animating) return;
+      if (this.selected === null) {
+        this.selected = card;
+        card.classList.add('selected');
+      } else if (this.selected === card) {
+        card.classList.remove('selected');
+        this.selected = null;
+      } else {
+        const idx1 = parseInt(this.selected.dataset.posIndex);
+        const idx2 = parseInt(card.dataset.posIndex);
+        this.swapCards(idx1, idx2);
+        this.selected.classList.remove('selected');
+        this.selected = null;
+      }
+    },
+
+    swapCards(idx1, idx2) {
+      const arr = this.currentOrder;
+      [arr[idx1], arr[idx2]] = [arr[idx2], arr[idx1]];
+      this.renderCards();
+      this.setupDragEvents();
+    },
+
+    setupDragEvents() {
+      const cards = document.querySelectorAll('#game-phase .card');
+      cards.forEach(card => {
+        card.draggable = true;
+        card.addEventListener('dragstart', (e) => {
+          this.dragSrc = card;
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', card.dataset.posIndex);
+        });
+        card.addEventListener('dragend', (e) => {
+          card.classList.remove('dragging');
+          document.querySelectorAll('#game-phase .card').forEach(c => c.classList.remove('drag-over'));
+        });
+        card.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          document.querySelectorAll('#game-phase .card').forEach(c => c.classList.remove('drag-over'));
+          card.classList.add('drag-over');
+        });
+        card.addEventListener('dragleave', () => {
+          card.classList.remove('drag-over');
+        });
+        card.addEventListener('drop', (e) => {
+          e.preventDefault();
+          card.classList.remove('drag-over');
+          if (this.dragSrc && this.dragSrc !== card) {
+            const idx1 = parseInt(this.dragSrc.dataset.posIndex);
+            const idx2 = parseInt(card.dataset.posIndex);
+            this.swapCards(idx1, idx2);
+          }
+          this.dragSrc = null;
+        });
+        let touchStartX, touchStartY;
+        card.addEventListener('touchstart', (e) => {
+          const touch = e.touches[0];
+          touchStartX = touch.clientX;
+          touchStartY = touch.clientY;
+          this.dragSrc = card;
+        }, { passive: true });
+        card.addEventListener('touchmove', (e) => {
+          e.preventDefault();
+          if (!this.dragSrc) return;
+          const touch = e.touches[0];
+          const dx = touch.clientX - touchStartX;
+          const dy = touch.clientY - touchStartY;
+          if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+            if (!this.dragClone) {
+              this.dragClone = this.dragSrc.cloneNode(true);
+              this.dragClone.style.position = 'fixed';
+              this.dragClone.style.width = this.dragSrc.offsetWidth + 'px';
+              this.dragClone.style.zIndex = '1000';
+              this.dragClone.style.pointerEvents = 'none';
+              this.dragClone.style.opacity = '0.8';
+              this.dragClone.style.transform = 'scale(1.05)';
+              document.body.appendChild(this.dragClone);
+              this.dragSrc.classList.add('dragging');
+            }
+            this.dragClone.style.left = (touch.clientX - this.dragClone.offsetWidth / 2) + 'px';
+            this.dragClone.style.top = (touch.clientY - this.dragClone.offsetHeight / 2) + 'px';
+            document.querySelectorAll('#game-phase .card').forEach(c => c.classList.remove('drag-over'));
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (target && target.closest('#game-phase .card')) {
+              target.closest('#game-phase .card').classList.add('drag-over');
+            }
+          }
+        }, { passive: false });
+        card.addEventListener('touchend', (e) => {
+          if (this.dragClone) {
+            this.dragClone.remove();
+            this.dragClone = null;
+          }
+          document.querySelectorAll('#game-phase .card').forEach(c => c.classList.remove('drag-over'));
+          if (this.dragSrc) {
+            const touch = e.changedTouches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (target && target.closest('#game-phase .card')) {
+              const dropCard = target.closest('#game-phase .card');
+              if (dropCard !== this.dragSrc) {
+                const idx1 = parseInt(this.dragSrc.dataset.posIndex);
+                const idx2 = parseInt(dropCard.dataset.posIndex);
+                this.swapCards(idx1, idx2);
+              }
+            }
+            this.dragSrc.classList.remove('dragging');
+            this.dragSrc = null;
+          }
+        }, { passive: true });
+      });
+    },
+
+    checkOrder() {
+      const correct = [0, 1, 2, 3, 4];
+      const isCorrect = this.currentOrder.every((val, idx) => val === correct[idx]);
+      const msg = document.getElementById('stage3-message');
+      if (isCorrect) {
+        msg.textContent = '🎉 正解！すごい！';
+        msg.style.color = '#7cfc00';
+        document.querySelectorAll('#game-phase .card').forEach((card, i) => {
+          setTimeout(() => card.classList.add('correct-placement'), i * 200);
+        });
+        setTimeout(() => {
+          app.clearTransition(3, 4);
+        }, 1500);
+      } else {
+        msg.textContent = '🤔 まだ正しくないよ。もう一度考えてみよう！';
+        msg.style.color = '#ff7eb3';
+        document.querySelectorAll('#game-phase .card').forEach(card => {
+          card.classList.add('wrong-shake');
+          setTimeout(() => card.classList.remove('wrong-shake'), 500);
+        });
+      }
+    },
+  },
+
+  showEnding() {
+    this.spawnConfetti();
+  },
+
+  spawnConfetti() {
+    const container = document.getElementById('confetti-container');
+    container.innerHTML = '';
+    const colors = ['#f7e05e', '#f5a623', '#ff7eb3', '#7cfc00', '#88aaff', '#dda0dd', '#ff6b6b', '#4ecdc4'];
+    for (let i = 0; i < 80; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      const x = Math.random() * 100;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const size = 6 + Math.random() * 10;
+      const duration = 2 + Math.random() * 3;
+      const delay = Math.random() * 2;
+      const shapes = ['50%', '0%'];
+      piece.style.cssText = `
+        left: ${x}%;
+        width: ${size}px;
+        height: ${size * (0.5 + Math.random())}px;
+        background: ${color};
+        border-radius: ${shapes[Math.floor(Math.random() * shapes.length)]};
+        animation-duration: ${duration}s;
+        animation-delay: ${delay}s;
+      `;
+      container.appendChild(piece);
+    }
+  },
+
+  reset() {
+    if (this.transitionTimer) clearTimeout(this.transitionTimer);
+    this.stage1.init();
+    this.stage2.init();
+    this.stage3.init();
+    this.stage1.activated = false;
+    this.stage2.activated = false;
+    this.stage3.activated = false;
+    document.getElementById('scratch-overlay').style.display = 'block';
+    document.getElementById('scratch-overlay').style.opacity = '1';
+    document.getElementById('hidden-password').classList.remove('revealed');
+    document.getElementById('rub-progress-fill').style.width = '0%';
+    document.getElementById('rub-progress-text').textContent = '🔍 虫眼鏡でこすってみよう！';
+    document.getElementById('rub-hint').textContent = '指でこすると…何か見えてくるかも？';
+    document.querySelectorAll('#game-phase .clear-overlay').forEach(o => o.classList.remove('show'));
+    document.querySelectorAll('.pentagon-dot').forEach(d => d.classList.remove('done'));
+    document.getElementById('confetti-container').innerHTML = '';
+    this.showStage(0);
+  },
+};
+
+// ===== Global mouse/touch handlers for Stage 1 =====
+document.addEventListener('mousedown', (e) => {
+  const drawerB = document.getElementById('drawer-b');
+  if (drawerB && drawerB.contains(e.target) && app.currentStage === 1) {
+    app.stage1.onRubStart(e.clientX, e.clientY);
+  }
+});
+document.addEventListener('mousemove', (e) => {
+  if (app.stage1.isRubbing && app.currentStage === 1) {
+    app.stage1.onRubMove(e.clientX, e.clientY);
+  }
+});
+document.addEventListener('mouseup', () => {
+  app.stage1.onRubEnd();
+});
+document.addEventListener('touchstart', (e) => {
+  if (app.currentStage === 1) {
+    const drawerB = document.getElementById('drawer-b');
+    if (drawerB && drawerB.contains(e.target)) {
+      const touch = e.touches[0];
+      app.stage1.onRubStart(touch.clientX, touch.clientY);
+    }
+  }
+}, { passive: true });
+document.addEventListener('touchmove', (e) => {
+  if (app.stage1.isRubbing && app.currentStage === 1) {
+    const touch = e.touches[0];
+    app.stage1.onRubMove(touch.clientX, touch.clientY);
+  }
+}, { passive: true });
+document.addEventListener('touchend', () => {
+  app.stage1.onRubEnd();
+}, { passive: true });
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (app.currentStage === 1) app.stage1.resize();
+    if (app.currentStage === 2) {
+      app.stage2.activated = false;
+      setTimeout(() => app.stage2.activate(), 200);
+    }
+  }, 300);
+});
+
+app.init();
+</script>
+</body>
+</html>
